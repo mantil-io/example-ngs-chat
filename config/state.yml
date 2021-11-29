@@ -12,21 +12,11 @@ stages:
     ws: wss://m4dpjcu1ve.execute-api.eu-central-1.amazonaws.com
   last_deployment:
     version: v0.2.1-14-g3caefba
-    time: 2021-11-29T22:08:14+01:00
+    time: 2021-11-29T22:44:09+01:00
   functions:
   - name: chat
-    hash: 0825a1bf
-    s3_key: functions/example-ngs-chat/dev/chat-0825a1bf.zip
-    memory_size: 128
-    timeout: 900
-    env:
-      MANTIL_GO_CONFIG: eyJSZXNvdXJjZVRhZ3MiOnsiTUFOVElMX0tFWSI6IjhiNGUxNTczIiwiTUFOVElMX1BST0pFQ1QiOiJleGFtcGxlLW5ncy1jaGF0IiwiTUFOVElMX1NUQUdFIjoiZGV2IiwiTUFOVElMX1dPUktTUEFDRSI6Ik5OcS1VQTRKUy1Xc2s4VFlCd3dvVXcifSwiV3NGb3J3YXJkZXJOYW1lIjoibWFudGlsLWV4YW1wbGUtbmdzLWNoYXQtZGV2LXdzLWZvcndhcmRlci04YjRlMTU3MyIsIk5hbWluZ1RlbXBsYXRlIjoiZXhhbXBsZS1uZ3MtY2hhdC1kZXYtJXMtOGI0ZTE1NzMifQ==
-      MANTIL_KEY: 8b4e1573
-      MANTIL_PROJECT: example-ngs-chat
-      MANTIL_STAGE: dev
-  - name: ping
-    hash: 96fbeda7
-    s3_key: functions/example-ngs-chat/dev/ping-96fbeda7.zip
+    hash: 9956fc27
+    s3_key: functions/example-ngs-chat/dev/chat-9956fc27.zip
     memory_size: 128
     timeout: 900
     env:
@@ -36,4 +26,4 @@ stages:
       MANTIL_STAGE: dev
   public:
     bucket: example-ngs-chat-dev-public-8b4e1573
-    hash: a5fc6d5c
+    hash: 2e869e97
