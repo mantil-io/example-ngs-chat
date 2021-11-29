@@ -34,4 +34,19 @@ cp tester.creds public
 cp tester.creds api/chat
 ```
 
-After that `mantil deploy` and you are up.
+
+To setup new Mantil project:
+
+1. Create new Mantil project from this as template:
+``` sh
+mantil new mychat  --from https://github.com/mantil-io/example-ngs-chat
+``` 
+
+2. Create credentials and put the to the right place
+
+3. Create project stage and open entrypoint
+
+``` sh
+mantil stage new dev
+open $(mantil env --url)
+```
