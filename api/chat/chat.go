@@ -32,6 +32,8 @@ type Msg struct {
 	Message string `json:"m"`
 }
 
+// Post accepts client post message request
+// Publishes message to the chat subject and stores that message to the state.
 func (c *Chat) Post(ctx context.Context, msg Msg) error {
 	if msg.Message == "" {
 		return fmt.Errorf("no message")
@@ -74,6 +76,7 @@ func (c *Chat) flush() error {
 	return nil
 }
 
+// State publishes to the client inbox all messages from the state.
 func (c *Chat) State(ctx context.Context, inbox string) error {
 	if c.nc == nil {
 		nc, err := natsConnect(testerCreds)

@@ -108,8 +108,8 @@ const init = async function () {
       );
     }
   })().then();
-
   requestState(inbox);
+
   // we connected, and we publish our enter message
   conn.publish("enter", jc.encode({ id: me }));
   return conn;
@@ -145,11 +145,6 @@ function send() {
   return false;
 }
 
-function clear() {
-  const input = document.getElementById("data");
-  input.value = "";
-}
-
 // send the exit message
 function exiting() {
   if (window.nc) {
@@ -165,28 +160,16 @@ function addEntry(s) {
 }
 
 function post(msg) {
-  var xmlhttp = new XMLHttpRequest();
-  xmlhttp.onreadystatechange = function() {
-    if (xmlhttp.readyState == XMLHttpRequest.DONE) {
-      if (xmlhttp.status == 204 || xmlhttp.status == 200) {
-        return;
-      }
-      if (xmlhttp.status == 500) {
-        var err = xmlhttp.getResponseHeader("x-api-error");
-        if (err != "") {
-          console.error(err);
-          return;
-        }
-      }
-    }
-  };
-
-  xmlhttp.open("POST", "/chat/post", true);
-  xmlhttp.send(JSON.stringify(msg));
+  httpPost("post", JSON.stringify(msg));
 }
 
 
 function requestState(inbox) {
+  httpPost("state", inbox);
+}
+
+// make http post request to the backend api
+function httpPost(method, body) {
   var xmlhttp = new XMLHttpRequest();
   xmlhttp.onreadystatechange = function() {
     if (xmlhttp.readyState == XMLHttpRequest.DONE) {
@@ -203,6 +186,6 @@ function requestState(inbox) {
     }
   };
 
-  xmlhttp.open("POST", "/chat/state", true);
-  xmlhttp.send(inbox);
+  xmlhttp.open("POST", "/chat/"+ method, true);
+  xmlhttp.send(body);
 }
