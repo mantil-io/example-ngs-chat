@@ -110,21 +110,27 @@ var internalServerError = fmt.Errorf("internal server error")
 func natsConnect(userJWT string) (*nats.Conn, error) {
 	url := "connect.ngs.global"
 
-	// save credentials from emebeded string variable to file
-	file, err := ioutil.TempFile("", "*.creds")
+	credsFile, err := saveEmebedeCredsToTmpFile()
 	if err != nil {
-		log.Printf("failed to save creds to tmp file %s", err)
-		return nil, internalServerError
-	}
-	if _, err = fmt.Fprint(file, testerCreds); err != nil {
-		log.Printf("failed to write to tmp file %s %s", file.Name(), err)
+		log.Printf("failed to prepare creds file: %s", err)
 		return nil, internalServerError
 	}
 
-	conn, err := nats.Connect(url, nats.UserCredentials(file.Name()))
+	conn, err := nats.Connect(url, nats.UserCredentials(credsFile))
 	if err != nil {
 		log.Printf("failed to connect: %s", err)
 		return nil, internalServerError
 	}
 	return conn, nil
+}
+
+func saveEmebedeCredsToTmpFile() (string, error) {
+	file, err := ioutil.TempFile("", "*.creds")
+	if err != nil {
+		return "", err
+	}
+	if _, err = fmt.Fprint(file, testerCreds); err != nil {
+		return "", err
+	}
+	return file.Name(), nil
 }
