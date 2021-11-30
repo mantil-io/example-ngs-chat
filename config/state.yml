@@ -12,11 +12,11 @@ stages:
     ws: wss://m4dpjcu1ve.execute-api.eu-central-1.amazonaws.com
   last_deployment:
     version: v0.2.1-14-g3caefba
-    time: 2021-11-29T22:44:09+01:00
+    time: 2021-11-30T16:59:22+01:00
   functions:
   - name: chat
-    hash: 9956fc27
-    s3_key: functions/example-ngs-chat/dev/chat-9956fc27.zip
+    hash: f573a539
+    s3_key: functions/example-ngs-chat/dev/chat-f573a539.zip
     memory_size: 128
     timeout: 900
     env:

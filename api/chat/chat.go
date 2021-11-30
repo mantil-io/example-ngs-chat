@@ -6,8 +6,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 
+	"github.com/mantil-io/mantil.go/er"
 	"github.com/nats-io/nats.go"
 )
 
@@ -20,7 +20,13 @@ type Chat struct {
 var testerCreds string
 
 func New() *Chat {
-	return &Chat{}
+	nc, err := natsConnect(testerCreds)
+	if err != nil {
+		panic(fmt.Errorf("nats connection failed %w", err))
+	}
+	return &Chat{
+		nc: nc,
+	}
 }
 
 func (c *Chat) Default(ctx context.Context) error {
@@ -36,90 +42,64 @@ type Msg struct {
 // Publishes message to the chat subject and stores that message to the state.
 func (c *Chat) Post(ctx context.Context, msg Msg) error {
 	if msg.Message == "" {
-		return fmt.Errorf("no message")
-	}
-	if c.nc == nil {
-		nc, err := natsConnect(testerCreds)
-		if err != nil {
-			return err
-		}
-		c.nc = nc
+		return er.E(er.NewBadRequestError("no message"))
 	}
 	if err := c.pub("chat", msg); err != nil {
-		return err
+		return er.E(err, er.ErrInternalServer)
 	}
 	if err := c.flush(); err != nil {
-		return err
+		return er.E(err, er.ErrInternalServer)
 	}
 	c.state = append(c.state, msg)
+	return nil
+}
+
+// State publishes to the client inbox all messages from the state.
+func (c *Chat) State(ctx context.Context, inbox string) error {
+	// publish current chat state
+	for _, msg := range c.state {
+		if err := c.pub(inbox, msg); err != nil {
+			return er.E(err, er.ErrInternalServer)
+		}
+	}
+
+	// publish one empty message to signal end of stream
+	if err := c.nc.Publish(inbox, nil); err != nil {
+		return er.E(err, er.ErrInternalServer)
+	}
+
+	if err := c.flush(); err != nil {
+		return er.E(err, er.ErrInternalServer)
+	}
 	return nil
 }
 
 func (c *Chat) pub(subject string, msg Msg) error {
 	buf, err := json.Marshal(msg)
 	if err != nil {
-		log.Printf("failed to marshal %s", err)
-		return internalServerError
+		return er.E(err)
 	}
 	if err := c.nc.Publish(subject, buf); err != nil {
-		log.Printf("publish error %s", err)
-		return internalServerError
+		return er.E(err)
 	}
 	return nil
 }
 
 func (c *Chat) flush() error {
-	if err := c.nc.Flush(); err != nil {
-		log.Printf("flush error %s", err)
-		return internalServerError
-	}
-	return nil
+	return er.E(c.nc.Flush())
 }
-
-// State publishes to the client inbox all messages from the state.
-func (c *Chat) State(ctx context.Context, inbox string) error {
-	if c.nc == nil {
-		nc, err := natsConnect(testerCreds)
-		if err != nil {
-			return err
-		}
-		c.nc = nc
-	}
-
-	// publish current chat state
-	for _, msg := range c.state {
-		if err := c.pub(inbox, msg); err != nil {
-			return err
-		}
-	}
-
-	// publish one empty message to signal end of stream
-	if err := c.nc.Publish(inbox, nil); err != nil {
-		log.Printf("publish error %s", err)
-		return internalServerError
-	}
-
-	if err := c.flush(); err != nil {
-		return err
-	}
-	return nil
-}
-
-var internalServerError = fmt.Errorf("internal server error")
 
 func natsConnect(userJWT string) (*nats.Conn, error) {
 	url := "connect.ngs.global"
 
 	credsFile, err := saveEmebedeCredsToTmpFile()
 	if err != nil {
-		log.Printf("failed to prepare creds file: %s", err)
-		return nil, internalServerError
+		return nil, er.E(err)
 	}
 
 	conn, err := nats.Connect(url, nats.UserCredentials(credsFile))
 	if err != nil {
-		log.Printf("failed to connect: %s", err)
-		return nil, internalServerError
+		return nil, er.E(err)
 	}
 	return conn, nil
 }
@@ -127,10 +107,10 @@ func natsConnect(userJWT string) (*nats.Conn, error) {
 func saveEmebedeCredsToTmpFile() (string, error) {
 	file, err := ioutil.TempFile("", "*.creds")
 	if err != nil {
-		return "", err
+		return "", er.E(err)
 	}
 	if _, err = fmt.Fprint(file, testerCreds); err != nil {
-		return "", err
+		return "", er.E(err)
 	}
 	return file.Name(), nil
 }
