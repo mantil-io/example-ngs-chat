@@ -11,31 +11,27 @@ import (
 	"github.com/nats-io/nats.go"
 )
 
+//go:embed tester.creds
+var testerCreds string
+
 type Chat struct {
 	nc    *nats.Conn
 	state []Msg
 }
 
-//go:embed tester.creds
-var testerCreds string
+type Msg struct {
+	ID      int    `json:"id"`
+	Message string `json:"m"`
+}
 
 func New() *Chat {
-	nc, err := natsConnect(testerCreds)
+	nc, err := natsConnect()
 	if err != nil {
 		panic(fmt.Errorf("nats connection failed %w", err))
 	}
 	return &Chat{
 		nc: nc,
 	}
-}
-
-func (c *Chat) Default(ctx context.Context) error {
-	panic("not implemented")
-}
-
-type Msg struct {
-	ID      int    `json:"id"`
-	Message string `json:"m"`
 }
 
 // Post accepts client post message request
@@ -89,7 +85,7 @@ func (c *Chat) flush() error {
 	return er.E(c.nc.Flush())
 }
 
-func natsConnect(userJWT string) (*nats.Conn, error) {
+func natsConnect() (*nats.Conn, error) {
 	url := "connect.ngs.global"
 
 	credsFile, err := saveEmebedeCredsToTmpFile()
